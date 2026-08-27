@@ -1,12 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="D:\Documents\My Games\Terraria\tModLoader\ModSources\tModLoader.targets" />
+  <!-- 标准 tML 模组工程：将本目录放入 tModLoader 的 ModSources 下即可用相对路径构建 -->
+  <Import Project="..\tModLoader.targets" />
   <PropertyGroup>
     <AssemblyName>ComboKeybinds</AssemblyName>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <!-- 弱引用依赖（ImproveGame）：编译引用其类型时，把 dll 放入 ModSources\ModAssemblies -->
     <Reference Include="ImproveGame">
-      <HintPath>D:\Documents\My Games\Terraria\tModLoader\ModSources\ModAssemblies\ImproveGame_v1.8.2.dll</HintPath>
+      <HintPath>..\ModAssemblies\ImproveGame_v1.8.2.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

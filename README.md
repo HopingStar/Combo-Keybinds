@@ -61,12 +61,12 @@
 ## 构建（开发者）
 
 ```bash
-dotnet build "H:\WorkSpace\mod_build\ComboKeybinds\ComboKeybinds.csproj"
+dotnet build
 ```
 
-产物 `.tmod` 自动输出到 `D:\Documents\My Games\Terraria\tModLoader\Mods\`。构建前请先关闭 tModLoader。
-
-> 工程依赖 `tModLoader.targets` 与 `ImproveGame.dll`（ModAssemblies），路径在 `ComboKeybinds.csproj` 中已配置为绝对路径，可按需修改。
+- 工程通过 `ComboKeybinds.csproj` 引用 tModLoader 的 `tModLoader.targets`，请按你的本机环境调整该 Import 路径
+- 可选依赖 ImproveGame（`build.txt` 的 `weakReferences` 弱引用）：编译引用 ImproveGame 类型时需要把其 dll 放入 tML 的 `ModAssemblies` 目录；缺少时仅 ImproveGame 相关功能不生效
+- 产物 `.tmod` 自动输出到 tModLoader 的 `Mods` 目录；构建前请先关闭 tModLoader
 
 ## 目录结构
 
