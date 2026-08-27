@@ -120,6 +120,13 @@ public class ComboKeybindSystem : ModSystem
 			_prevFrameHadKeys = false;
 		}
 
+		// 长按保持：vanilla 只在「按键新按下」时调 Processkey，持续按住走 CopyKeyState（对组合串精确匹配失败），
+		// 导致组合功能的 KeyStatus 每帧被重置回 false → 长按只闪一下。这里每帧主动维持组合键的按住状态。
+		if (!PlayerInput.CurrentlyRebinding)
+		{
+			UpdateComboHoldStates();
+		}
+
 		// 兜底：每帧检测按键配置变化，实时重算冲突（覆盖所有绑定变化来源）
 		UpdateConflictDetection();
 
@@ -315,6 +322,56 @@ public class ComboKeybindSystem : ModSystem
 		return true;
 	}
 
+	// 每帧维持组合键的「持续按住」状态，解决长按功能（按住显示、松开隐藏）闪烁问题。
+	// 每帧 Triggers.Reset() 会清空所有键状态，这里在输入处理之后把「修饰键 + 主键 当前都按住」的组合重新置为按下。
+	private static void UpdateComboHoldStates()
+	{
+		if (PlayerInput.GetPressedKeys().Count == 0)
+		{
+			return; // 没有任何键按住，无组合可命中
+		}
+
+		foreach (InputMode mode in new[] { InputMode.Keyboard, InputMode.KeyboardUI })
+		{
+			KeyConfiguration config = PlayerInput.CurrentProfile.InputModes[mode];
+			foreach (KeyValuePair<string, List<string>> kvp in config.KeyStatus)
+			{
+				foreach (string binding in kvp.Value)
+				{
+					if (string.IsNullOrEmpty(binding) || binding.IndexOf('+') < 0)
+					{
+						continue;
+					}
+					string[] parts = binding.Split('+');
+					if (parts.Length != 2 || !IsModifierKey(parts[0]))
+					{
+						continue;
+					}
+					// 修饰键 + 主键 当前都按住 → 维持触发状态
+					if (ModifierKeysHeld(parts) && IsKeyDown(parts[^1]))
+					{
+						TriggersSet set = PlayerInput.Triggers.Current;
+						set.KeyStatus[kvp.Key] = true;
+						set.LatestInputMode[kvp.Key] = mode;
+					}
+				}
+			}
+		}
+	}
+
+	// 单个物理键当前是否按住
+	private static bool IsKeyDown(string key)
+	{
+		foreach (Microsoft.Xna.Framework.Input.Keys k in PlayerInput.GetPressedKeys())
+		{
+			if (k.ToString() == key)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	// 事件「OnBindingChange」只能在声明类内部调用，模组里用反射触发（字段式事件的 backing field 是 private）
 	private static void InvokeOnBindingChange()
 	{
@@ -432,7 +489,7 @@ public class ComboKeybindSystem : ModSystem
 
 		if (isConflict && showConflicts && self.IsMouseHovering)
 		{
-			string conflict = BuildConflictText(keybind);
+			string conflict = BuildConflictText(keybind, GetInputMode(self));
 			if (conflict != null)
 			{
 				// 读取当前鼠标提示（其他模组的描述），追加在冲突信息上方
@@ -442,15 +499,42 @@ public class ComboKeybindSystem : ModSystem
 		}
 	}
 
-	// 生成冲突提示文本（vanilla 与 ImproveGame 界面共用）
-	private static string BuildConflictText(string keybindName)
+	// 生成冲突提示文本（vanilla 与 ImproveGame 界面共用）。
+	// 只列出「与该键位共享至少一个相同绑定串」的其他功能，而不是全部冲突项。
+	private static string BuildConflictText(string keybindName, InputMode mode)
 	{
-		List<string> names = new();
-		foreach (string action in ConflictsKeyboard)
+		Dictionary<string, List<string>> status = PlayerInput.CurrentProfile.InputModes[mode].KeyStatus;
+		if (!status.TryGetValue(keybindName, out List<string> ownBindings) || ownBindings.Count == 0)
 		{
-			if (action != keybindName)
+			return null;
+		}
+		HashSet<string> own = new();
+		foreach (string b in ownBindings)
+		{
+			if (!string.IsNullOrEmpty(b))
 			{
-				names.Add(GetActionDisplayName(action));
+				own.Add(b);
+			}
+		}
+		if (own.Count == 0)
+		{
+			return null;
+		}
+
+		List<string> names = new();
+		foreach (KeyValuePair<string, List<string>> kvp in status)
+		{
+			if (kvp.Key == keybindName)
+			{
+				continue;
+			}
+			foreach (string b in kvp.Value)
+			{
+				if (!string.IsNullOrEmpty(b) && own.Contains(b))
+				{
+					names.Add(GetActionDisplayName(kvp.Key));
+					break;
+				}
 			}
 		}
 		if (names.Count == 0)
@@ -520,7 +604,7 @@ public class ComboKeybindSystem : ModSystem
 		// tooltip 追加冲突信息（hover 时，追加到 ImproveGame 自己的提示下方）
 		if (self.IsMouseHovering)
 		{
-			string conflict = BuildConflictText(self.KeybindName);
+			string conflict = BuildConflictText(self.KeybindName, InputMode.Keyboard);
 			if (conflict != null)
 			{
 				string existing = GetTooltipPanelText();
@@ -565,6 +649,18 @@ public class ComboKeybindSystem : ModSystem
 			InputMode.KeyboardUI => ConflictsKeyboardUI,
 			_ => NoConflicts, // 手柄项不标红
 		};
+	}
+
+	private static InputMode GetInputMode(UIKeybindingListItem self)
+	{
+		try
+		{
+			return (InputMode)_inputmodeField.GetValue(self);
+		}
+		catch
+		{
+			return InputMode.Keyboard;
+		}
 	}
 
 	// 按键功能的显示名（vanilla 用原版本地化，ModKeybind 用 DisplayName）
