@@ -1,0 +1,4 @@
+displayName = Combo Keybinds
+author = HopingStar
+version = 1.0.0
+weakReferences = ImproveGame

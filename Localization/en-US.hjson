@@ -1,0 +1,37 @@
+ComboKeybinds.DisplayName: Combo Keybinds
+
+Mods: {
+	ComboKeybinds: {
+		Configs: {
+			ComboKeybindConfig: {
+				DisplayName: Combo Keybind Config
+
+				ShowConflictsVanilla: {
+					Label: Show Conflicts Vanilla
+					Tooltip: ""
+				}
+
+				ShowConflictsImproveGame: {
+					Label: Show Conflicts Improve Game
+					Tooltip: ""
+				}
+			}
+
+			Config.DisplayName: Config
+		}
+	}
+}
+
+Configs: {
+	ComboKeybindConfig: {
+		ShowConflictsVanilla: {
+			Label: Show conflicts in controls
+			Tooltip: Highlight conflicting keybinds in the vanilla keybind screen.
+		}
+
+		ShowConflictsImproveGame: {
+			Label: Show conflicts in "Better Experience" controls
+			Tooltip: Show a red dot for conflicting keybinds in ImproveGame's keybind screen.
+		}
+	}
+}

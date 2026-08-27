@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="D:\Documents\My Games\Terraria\tModLoader\ModSources\tModLoader.targets" />
+  <PropertyGroup>
+    <AssemblyName>ComboKeybinds</AssemblyName>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ImproveGame">
+      <HintPath>D:\Documents\My Games\Terraria\tModLoader\ModSources\ModAssemblies\ImproveGame_v1.8.2.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>
