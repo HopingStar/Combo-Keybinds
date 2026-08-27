@@ -4,6 +4,12 @@
 
 对**原版键位**和**所有模组的键位**（ModKeybind）都生效，支持 tModLoader 2026.06 / Terraria 1.4.4.9。
 
+## 下载
+
+从 [GitHub Releases](https://github.com/HopingStar/Combo-Keybinds/releases) 下载最新版 `.tmod`。
+
+安装：把 `.tmod` 放入 模组文件夹（`文档\My Games\Terraria\tModLoader\Mods`），在游戏内 模组管理 中启用即可。
+
 ## 功能特性
 
 - 🎹 **录制组合键**：在 设置→控制 里点某个键位槽，先按住 `Ctrl`（或 `Alt`），再按一个普通键，**全部松开**即可绑成 `Ctrl+R` 这样的组合键
